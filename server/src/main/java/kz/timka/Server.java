@@ -1,9 +1,14 @@
 package kz.timka;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Server {
@@ -26,9 +31,10 @@ public class Server {
         }
     }
 
-    public void broadcastMessage(String msg)  {
+    public void broadcastMessage(String msg) throws IOException {
         for(ClientHandler clientHandler : list) {
             clientHandler.sendMessage(msg);
+            //saveTextInHistory(msg);
         }
     }
 
@@ -51,11 +57,12 @@ public class Server {
         return false;
     }
 
-    public void sendPrivateMsg(ClientHandler sender, String receiver, String msg) {
+    public void sendPrivateMsg(ClientHandler sender, String receiver, String msg) throws IOException {
         for(ClientHandler c : list) {
             if(c.getUsername().equals(receiver)) {
                 c.sendMessage("From: " + sender.getUsername() + " Message: " + msg);
                 sender.sendMessage("Receiver: " + receiver + " Message: " + msg);
+                saveTextInHistory("From" + sender.getUsername() + "to " + receiver + ": " + msg);
                 return;
             }
         }
@@ -86,6 +93,17 @@ public class Server {
             unsubscribe(sender);
             subscribe(sender);
             sender.sendMessage("Your username was successfully changed!");
+        }
+    }
+
+    public void saveTextInHistory(String message) throws IOException {
+        try (FileOutputStream out = new FileOutputStream("text_history.txt", true)) {
+            byte[] arr = message.getBytes(StandardCharsets.UTF_8);
+            out.write(arr);
+            out.write(10);
+        } catch (IOException e) {
+            System.out.println("Произошла ошибка при записи в файл: " + e.getMessage());
+            throw e;
         }
     }
 }
