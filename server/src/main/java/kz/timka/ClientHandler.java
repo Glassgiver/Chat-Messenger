@@ -91,6 +91,7 @@ public class ClientHandler {
     public void sendMessage(String msg) {
         try {
             out.writeUTF(msg);
+            server.saveTextInHistory(msg);
         }catch (IOException e) {
             disconnect();
         }
